@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Synermaxx SMS Gateway (sendmsg)
+  version: "1.0.0-reconstructed"
+  description: |
+    Reconstructed OpenAPI for Synermaxx sendmsg.php.
+    Not an official vendor specification.
+    Sole production host/path; appkey auth only; acceptance is status ACK.
+servers:
+  - url: https://svr36.synermaxx.asia
+    description: Sole production Synermaxx gateway host
+paths:
+  /api/sendmsg.php:
+    post:
+      operationId: sendMessage
+      summary: Send an SMS message
+      security:
+        - AppKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+            example:
+              mobilenum: "09985746717"
+              originator: "22566100"
+              fullmesg: "Hello from Synermaxx"
+              format: "json"
+              blackhole: "0"
+      responses:
+        "200":
+          description: |
+            Gateway returned HTTP 200. Inspect body.status:
+            ACK means accepted; other values mean not accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageResponse"
+              example:
+                code: 200
+                status: "ACK"
+                transid: "BLACKHOLE,"
+                client_outboxnum: ""
+                mobilenum: "09985746717"
+                originator: "22566100"
+                txtparts: 1
+                dlr_flag: "0"
+                cost_ctr: false
+                ctr_mobilenum: 1
+                valid_mobilenum: 1
+                timestamp: "2025-01-24T18:02:12+08:00"
+        "400":
+          description: Bad request / rejection (exact body shape not fully confirmed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageFailure"
+        "401":
+          description: Missing or invalid appkey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageFailure"
+        "default":
+          description: Other gateway errors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageFailure"
+components:
+  securitySchemes:
+    AppKeyAuth:
+      type: apiKey
+      in: header
+      name: appkey
+  schemas:
+    SendMessageRequest:
+      type: object
+      required:
+        - mobilenum
+        - originator
+        - fullmesg
+      properties:
+        mobilenum:
+          type: string
+          description: Destination MSISDN in PH local form (09XXXXXXXXX)
+          pattern: "^09[0-9]{9}$"
+          example: "09985746717"
+        originator:
+          type: string
+          example: "22566100"
+        fullmesg:
+          type: string
+          minLength: 1
+          maxLength: 1600
+        format:
+          type: string
+          description: Optional; observed in practice as json
+          enum: ["json"]
+          default: "json"
+        blackhole:
+          type: string
+          description: Optional; observed in practice
+          enum: ["0", "1"]
+          default: "0"
+      additionalProperties: false
+    SendMessageResponse:
+      type: object
+      required:
+        - status
+      properties:
+        code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          description: ACK means accepted
+          example: "ACK"
+        transid:
+          type: string
+          description: Gateway transaction id (may include trailing comma)
+          example: "BLACKHOLE,"
+        client_outboxnum:
+          type: string
+        mobilenum:
+          type: string
+        originator:
+          type: string
+        txtparts:
+          type: integer
+        dlr_flag:
+          type: string
+        cost_ctr:
+          type: boolean
+        ctr_mobilenum:
+          type: integer
+        valid_mobilenum:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+      additionalProperties: true
+    SendMessageFailure:
+      type: object
+      description: Failure body not fully known; keep open
+      properties:
+        code:
+          type: integer
+        status:
+          type: string
+        message:
+          type: string
+        error:
+          type: string
+        transid:
+          type: string
+      additionalProperties: true

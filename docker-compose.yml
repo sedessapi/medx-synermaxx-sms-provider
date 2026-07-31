@@ -1,0 +1,9 @@
+services:
+  synermaxx-sms-provider:
+    build: .
+    container_name: synermaxx-sms-provider
+    ports:
+      - "127.0.0.1:8064:8064"
+    env_file:
+      - .env
+    restart: unless-stopped

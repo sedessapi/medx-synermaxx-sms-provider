@@ -1,0 +1,94 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-07-31T00:00:00.000Z",
+  "__export_source": "medx-synermaxx-sms-provider:v1",
+  "resources": [
+    {
+      "_id": "wrk_syn",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "medx-synermaxx-sms-provider",
+      "description": "Live Synermaxx — Provider Protocol v1. Requires SYNERMAXX_SMS_APPKEY.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_syn_local",
+      "_type": "environment",
+      "parentId": "wrk_syn",
+      "name": "local",
+      "data": {
+        "base_url": "http://localhost:8064",
+        "correlation_id": "insomnia-synermaxx",
+        "to": "+639662060323",
+        "message": "PSB importer live test"
+      }
+    },
+    {
+      "_id": "fld_ops",
+      "_type": "request_group",
+      "parentId": "wrk_syn",
+      "name": "0. Ops",
+      "metaSortKey": -1000
+    },
+    {
+      "_id": "req_healthz",
+      "_type": "request",
+      "parentId": "fld_ops",
+      "name": "GET /healthz",
+      "method": "GET",
+      "url": "{{ _.base_url }}/healthz",
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_manifest",
+      "_type": "request",
+      "parentId": "fld_ops",
+      "name": "GET /provider/v1/manifest",
+      "method": "GET",
+      "url": "{{ _.base_url }}/provider/v1/manifest",
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_invoke",
+      "_type": "request_group",
+      "parentId": "wrk_syn",
+      "name": "1. Invoke",
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_invoke",
+      "_type": "request",
+      "parentId": "fld_invoke",
+      "name": "POST invocations send-sms (live)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/provider/v1/invocations",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-Correlation-ID", "value": "{{ _.correlation_id }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"operation\": \"send-sms\",\n  \"input\": {\"to\": \"{{ _.to }}\", \"message\": \"{{ _.message }}\"}\n}"
+      },
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_bad_mobile",
+      "_type": "request",
+      "parentId": "fld_invoke",
+      "name": "POST invocations invalid mobile (negative)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/provider/v1/invocations",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-Correlation-ID", "value": "{{ _.correlation_id }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"operation\": \"send-sms\",\n  \"input\": {\"to\": \"not-a-phone\", \"message\": \"x\"}\n}"
+      },
+      "metaSortKey": 1
+    }
+  ]
+}
